@@ -1,3 +1,4 @@
+//explodir o player quando morrer
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
 
@@ -58,6 +59,7 @@ class Projectile {
 		this.radius = radius
 		this.color = color
 		this.velocity = velocity
+		this.factor = { bouce: 2 , piercing: 1 }
 	}
 	draw() {
 		c.beginPath()
@@ -71,6 +73,12 @@ class Projectile {
 		this.draw()
 		this.x = this.x + this.velocity.x
 		this.y = this.y + this.velocity.y
+		
+		if ( this.x <= 0 ) { this.x = 0 , this.velocity.x *=-1 }
+		else if ( this.x >= canvas.width ) { this.x  = canvas.width , this.velocity.x *=-1 }
+		else if ( this.y <= 0 ) { this.y = 0 , this.velocity.y *=-1 } 
+		else if ( this.y >= canvas.height ) { this.y = canvas.height , this.velocity.y *=-1 }
+
 	}
 }
 
@@ -156,6 +164,10 @@ function init() {
 	timer = 2000
 }
 
+function clickRegion(click, margem) {
+	region = click + ( margem * Math.random() ) - ( margem * Math.random() )
+	return region
+}
 
 function positionUpdate(position, velocity) {
 	position = position + velocity
@@ -163,7 +175,8 @@ function positionUpdate(position, velocity) {
 }
 
 function checkPressedKeys( aumentaPosicao , reduzPosicao ) {
-	if ( reduzPosicao ) { return -5 } else if ( aumentaPosicao ) { return 5 } else { return 0 }
+	//if ( reduzPosicao ) { return -5 } else if ( aumentaPosicao ) { return 5 } else { return 0 }
+	return ( -5 * reduzPosicao ) + ( 5 * aumentaPosicao ) + 0 //BRANCHLESS CODE
 }
 
 
@@ -244,6 +257,7 @@ function animate() {
 			bigScoreEL.innerHTML = score
 		}
 		
+		//-------------------------------------------------------------------------------
 		// when a projectile hits the enemy
 		projectiles.forEach((projectile, projectileIndex) => {
 			const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
@@ -272,7 +286,18 @@ function animate() {
 					ScoreEL.innerText = score
 					gsap.to(enemy, {radius: enemy.radius - 15})
 					setTimeout(() => {
-						projectiles.splice(projectileIndex, 1) 
+						
+						if ( projectile.factor.piercing < 1 )
+						{
+							projectiles.splice(projectileIndex, 1)
+						}
+						else
+						{ 
+							projectile.factor.piercing = projectile.factor.piercing - 1
+							
+							
+						}
+						
 					}, 0)
 				} else {
 					if (timer > 500) {timer -=10}
@@ -282,11 +307,12 @@ function animate() {
 					ScoreEL.innerText = score
 					setTimeout(() => {
 						enemies.splice(enemyIndex, 1)
-						//projectiles.splice(projectileIndex, 1) 
+						projectiles.splice(projectileIndex, 1) 
 					}, 0)
 				}
 			}
 		})
+		//-------------------------------------------------------------------------------
 	})
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -295,23 +321,30 @@ function animate() {
 addEventListener('click', () => {
 	// look at the position of the 'click' to extraxt the x and y to set the projectile diretion
 	
-	const angle = Math.atan2( event.clientY - player.y , event.clientX - player.x )
-	//const angle = Math.atan2( event.clientY - player.x , event.clientX - player.y )
+	//const velocity = { x: Math.cos(angle) * Math.random() * 5, y: Math.sin(angle) * Math.random() * 5 }
+	//const velocity = { x: Math.cos(angle) * ( Math.random() * 5 + 3 ), y: Math.sin(angle) * ( Math.random() * 5 + 3 ) }
+	//const angle = Math.atan2( clickRegion(event.clientY, 100) - player.y ,  clickRegion(event.clientX, 100) - player.x )
+	const clickDist = Math.sqrt( ( player.x - event.clientX ) * ( player.x - event.clientX ) + ( player.y - event.clientY ) * ( player.y - event.clientY ) )
 	
-	const velocity = {
-		x: Math.cos(angle) * 5,
-		y: Math.sin(angle) * 5
-	}
-	//console.log(angle) varia de -3.14 até 0 e 0 até +3.14
 	// on every click done, it will 'push' (create) a object (a porjectile) and add it in the array
 	
-	if ( player.color == 'red' ) { 
-		projectiles.push(new Projectile( player.x , player.y , Math.random() * 2 + 1 , player.color , { x: Math.cos( angle * 1.10 ) * 2 , y: Math.sin( angle * 1.10 ) * 2 } ) )
-		projectiles.push(new Projectile( player.x , player.y , Math.random() * 2 + 1 , player.color , { x: Math.cos( angle * 1.05 ) * 3 , y: Math.sin( angle * 1.05 ) * 3 } ) )
-		projectiles.push(new Projectile( player.x , player.y , Math.random() * 2 + 1 , player.color , { x: Math.cos( angle * 1.15 ) * 5 , y: Math.sin( angle * 1.15 ) * 5 } ) )
+	if ( player.color == 'red' ) {
+		angle = Math.atan2( clickRegion(event.clientY, 100 ) - player.y ,  clickRegion(event.clientX, 100 ) - player.x )
+		projectiles.push(new Projectile( player.x , player.y , Math.random() * 3 + 1 , player.color , { x: Math.cos(angle) * ( Math.random() * 2 ), y: Math.sin(angle) * ( Math.random() * 2 ) } ) )
+		
+		angle = Math.atan2( clickRegion(event.clientY, 100 ) - player.y ,  clickRegion(event.clientX, 100 ) - player.x )
+		projectiles.push(new Projectile( player.x , player.y , Math.random() * 3 + 1 , player.color , { x: Math.cos(angle) * ( Math.random() * 2 ), y: Math.sin(angle) * ( Math.random() * 2 ) } ) )
+		
+		angle = Math.atan2( clickRegion(event.clientY, 100 ) - player.y ,  clickRegion(event.clientX, 100 ) - player.x )
+		projectiles.push(new Projectile( player.x , player.y , Math.random() * 3 + 1 , player.color , { x: Math.cos(angle) * ( Math.random() * 2 ), y: Math.sin(angle) * ( Math.random() * 2 ) } ) )
 	}
+	
 	else if ( player.color == 'white' ) { 
+		angle = Math.atan2( clickRegion(event.clientY, clickDist/10 ) - player.y ,  clickRegion(event.clientX, clickDist/10 ) - player.x )
+		velocity = { x: Math.cos(angle) * 9 , y: Math.sin(angle) * 9 }
+		
 		projectiles.push(new Projectile( player.x , player.y , 3 , player.color , velocity ) ) }
+	console.log( projectiles )
 	
 })
 
