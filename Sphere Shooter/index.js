@@ -4,6 +4,10 @@ const c = canvas.getContext('2d')
 canvas.width = innerWidth-10
 canvas.height = innerHeight-10
 
+const ScoreEL = document.querySelector('#ScoreEL')
+const StartGameBtn = document.querySelector('#StartGameBtn')
+const modalEL = document.querySelector('#modalEL')
+const bigScoreEL = document.querySelector('#bigScoreEL')
 
 // define a Class to the player
 class Player {
@@ -22,7 +26,6 @@ class Player {
 		c.fill()
 	}
 }
-
 
 class Projectile {
 	constructor(x, y, radius, color, velocity) {
@@ -106,7 +109,7 @@ let player = new Player(x, y, 10, 'white')
 let projectiles = []
 let enemies = []
 let particles = []
-let timer = 1500
+let timer = 2000
 
 function init() {
 	player = new Player(x, y, 10, 'white')
@@ -116,7 +119,7 @@ function init() {
 	score = 0
 	ScoreEL.innerHTML = 0
 	bigScoreEL.innerHTML = 0
-	timer = 1500
+	timer = 2000
 }
 
 // create an ENEMY over time, and set its movements
@@ -148,6 +151,8 @@ function spawnEnemies() {
 		}
 		
 		enemies.push(new Enemy(x, y, radius, color, velocity))
+		//if (timer >= 500) {timer -=25} 
+		//console.log(timer)
 		spawnEnemies()
 	}, timer)
 }
@@ -157,7 +162,7 @@ let score = 0
 
 function animate() {
 	animationID = requestAnimationFrame(animate)
-	c.fillStyle = 'rgba(0, 0, 0, 0.3)'
+	c.fillStyle = 'rgba(0, 0, 0, 0.2)'
 	c.fillRect(0, 0, canvas.width, canvas.height)
 	
 	player.draw()
@@ -219,16 +224,16 @@ function animate() {
 				
 				//shink enemy when its hit
 				if (enemy.radius - 15 > 15) {
-					score += 10
+					score += 100
 					ScoreEL.innerText = score
 					gsap.to(enemy, {radius: enemy.radius - 15})
 					setTimeout(() => {
 						projectiles.splice(projectileIndex, 1) 
 					}, 0)
 				} else {
-					if (timer > 500) {timer -=15} 
-					// console.log(timer)
-					score += 25
+					if (timer >= 500) {timer -=20} 
+					console.log(timer)
+					score += 250
 					ScoreEL.innerText = score
 					setTimeout(() => {
 						enemies.splice(emenyIndex, 1)
