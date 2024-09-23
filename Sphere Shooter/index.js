@@ -11,7 +11,6 @@ const bigScoreEL = document.querySelector('#bigScoreEL')
 
 // define a Class to the player
 
-let playermode = 'white'
 class Player {
 	// this one is going to set and define the essntials properties of the player
 	constructor( x , y , radius , color ) {
@@ -34,8 +33,8 @@ class Player {
 		this.velocity.vx = checkPressedKeys( keys.right.pressed , keys.left.pressed )
 		this.velocity.vy = checkPressedKeys( keys.down.pressed , keys.up.pressed )
 		
-		if ( keys.color1.pressed ) { playermode = 'white' ; this.color = playermode }
-		else if ( keys.color2.pressed ) { playermode = 'red' ; this.color = playermode }
+		if ( keys.color1.pressed ) { this.color = 'white' }
+		else if ( keys.color2.pressed ) { this.color = 'red' }
 		
 		// Keep the player within canvas's borders
 		if ( this.x <= 0 ) { this.x = 0 }
@@ -304,12 +303,13 @@ addEventListener('click', () => {
 		y: Math.sin(angle) * 5
 	}
 	
-	playermode = player.color
-	
 	// on every click done, it will 'push' (create) a object (a porjectile) and add it in the array
 	
 	if ( player.color == 'red' ) { 
-		projectiles.push(new Projectile( player.x , player.y , 6 , player.color , { x: Math.cos(angle) , y: Math.sin(angle) } ) ) }
+		projectiles.push(new Projectile( player.x , player.y , 6 , player.color , { x: Math.cos(angle) * 0.6 , y: Math.sin(angle) * 0.3 } ) )
+		projectiles.push(new Projectile( player.x , player.y , 5 , player.color , { x: Math.cos(angle) * 0.3 , y: Math.sin(angle) * 0.9 } ) )
+		projectiles.push(new Projectile( player.x , player.y , 7 , player.color , { x: Math.cos(angle) * 0.9 , y: Math.sin(angle) * 0.6 } ) )
+	}
 	else if ( player.color == 'white' ) { 
 		projectiles.push(new Projectile( player.x , player.y , 3 , player.color , velocity ) ) }
 	
