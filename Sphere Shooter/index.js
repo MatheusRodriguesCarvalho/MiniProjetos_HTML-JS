@@ -302,13 +302,13 @@ addEventListener('click', () => {
 		x: Math.cos(angle) * 5,
 		y: Math.sin(angle) * 5
 	}
-	
+	//console.log(angle) varia de -3.14 até 0 e 0 até +3.14
 	// on every click done, it will 'push' (create) a object (a porjectile) and add it in the array
 	
 	if ( player.color == 'red' ) { 
-		projectiles.push(new Projectile( player.x , player.y , 6 , player.color , { x: Math.cos(angle) * 0.6 , y: Math.sin(angle) * 0.3 } ) )
-		projectiles.push(new Projectile( player.x , player.y , 5 , player.color , { x: Math.cos(angle) * 0.3 , y: Math.sin(angle) * 0.9 } ) )
-		projectiles.push(new Projectile( player.x , player.y , 7 , player.color , { x: Math.cos(angle) * 0.9 , y: Math.sin(angle) * 0.6 } ) )
+		projectiles.push(new Projectile( player.x , player.y , Math.random() * 2 + 1 , player.color , { x: Math.cos( angle * 1.10 ) * 2 , y: Math.sin( angle * 1.10 ) * 2 } ) )
+		projectiles.push(new Projectile( player.x , player.y , Math.random() * 2 + 1 , player.color , { x: Math.cos( angle * 1.05 ) * 3 , y: Math.sin( angle * 1.05 ) * 3 } ) )
+		projectiles.push(new Projectile( player.x , player.y , Math.random() * 2 + 1 , player.color , { x: Math.cos( angle * 1.15 ) * 5 , y: Math.sin( angle * 1.15 ) * 5 } ) )
 	}
 	else if ( player.color == 'white' ) { 
 		projectiles.push(new Projectile( player.x , player.y , 3 , player.color , velocity ) ) }
