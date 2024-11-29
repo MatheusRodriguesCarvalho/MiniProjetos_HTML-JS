@@ -36,6 +36,7 @@ class Player {
 		
 		if ( keys.color1.pressed ) { this.color = 'white' }
 		else if ( keys.color2.pressed ) { this.color = 'red' }
+		else if ( keys.color3.pressed ) { this.color = 'blue' }
 		
 		// Keep the player within canvas's borders
 		if ( this.x <= 0 ) { this.x = 0 }
@@ -59,7 +60,7 @@ class Projectile {
 		this.radius = radius
 		this.color = color
 		this.velocity = velocity
-		this.factor = { bouce: 2 , piercing: 1 }
+		this.factor = { bouce: -1 , piercing: 1, teleport: 2 }
 	}
 	draw() {
 		c.beginPath()
@@ -74,11 +75,30 @@ class Projectile {
 		this.x = this.x + this.velocity.x
 		this.y = this.y + this.velocity.y
 		
-		if ( this.x <= 0 ) { this.x = 0 , this.velocity.x *=-1 }
-		else if ( this.x >= canvas.width ) { this.x  = canvas.width , this.velocity.x *=-1 }
-		else if ( this.y <= 0 ) { this.y = 0 , this.velocity.y *=-1 } 
-		else if ( this.y >= canvas.height ) { this.y = canvas.height , this.velocity.y *=-1 }
-
+		if(this.color == 'blue')
+		{
+			if ( this.x <= 0 ) { this.x = canvas.width, this.factor.teleport -= 1 }
+			else if ( this.x >= canvas.width ) { this.x  = 0 , this.factor.teleport -= 1 }
+			else if ( this.y <= 0 ) { this.y = canvas.height , this.factor.teleport -= 1 }
+			else if ( this.y >= canvas.height ) { this.y = 0 , this.factor.teleport -= 1 }
+		}
+		else if (this.color == 'white')
+		{
+			if ( this.x <= 0 ) { this.x = 0 , this.velocity.x *=-1 , this.factor.bounce -= 1 }
+			else if ( this.x >= canvas.width ) { this.x  = canvas.width , this.velocity.x *=-1 , this.factor.bounce -= 1 }
+			else if ( this.y <= 0 ) { this.y = 0 , this.velocity.y *=-1 , this.factor.bounce -= 1 }
+			else if ( this.y >= canvas.height ) { this.y = canvas.height , this.velocity.y *=-1 , this.factor.bounce -= 1 }
+		}
+		else if (this.color == 'red')
+		{
+			if ( this.x <= 0 || this.x >= canvas.width || this.y <= 0 ||  this.y >= canvas.height)
+			{
+				this.velocity.x = 0
+				this.velocity.y = 0
+			}
+		}
+		
+		
 	}
 }
 
@@ -150,7 +170,8 @@ const keys = {
 	up: {pressed: false},
 	down: {pressed: false},
 	color1: {pressed: true},
-	color2: {pressed: false}
+	color2: {pressed: false},
+	color3: {pressed: false}
 }
 
 function init() {
@@ -263,56 +284,61 @@ function animate() {
 			const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
 			const distPoint = Math.hypot(player.x - enemy.x, player.y - enemy.y)
 			
-			if (dist - enemy.radius - projectile.radius < 1) {
+			if ( projectile.factor.bounce < 0 || projectile.factor.teleport < 0 )
+			{
+				projectiles.splice(projectileIndex, 1)
+			}
+			
+			else
+			{
+				if (dist - enemy.radius - projectile.radius < 1) {
+					
+					// create particles from enemy when its hit
+					for (let i = 0; i < enemy.radius; i++) {
+						particles.push(new Particle (
+							enemy.x, 
+							enemy.y, 
+							Math.random() * 3, 
+							enemy.color, 
+							{
+							 x: (Math.random() - 0.5) * (Math.random() * 15), 
+							 y: (Math.random() - 0.5) * (Math.random() * 15)
+							}))
+					}
 				
-				// create particles from enemy when its hit
-				for (let i = 0; i < enemy.radius; i++) {
-					particles.push(new Particle (
-						enemy.x, 
-						enemy.y, 
-						Math.random() * 3, 
-						enemy.color, 
-						{
-						 x: (Math.random() - 0.5) * (Math.random() * 15), 
-						 y: (Math.random() - 0.5) * (Math.random() * 15)
-						}))
-				}
-				
-				//shink enemy when its hit
-				if (enemy.radius - 15 > 15) {
-					
-					score += Math.round(100 * ( (distPoint - enemy.radius) / 100) ) 
-					
-					ScoreEL.innerText = score
-					gsap.to(enemy, {radius: enemy.radius - 15})
-					setTimeout(() => {
+					//shink enemy when its hit
+					if (enemy.radius - 15 > 15) {
 						
-						if ( projectile.factor.piercing < 1 )
-						{
-							projectiles.splice(projectileIndex, 1)
-						}
-						else
-						{ 
-							projectile.factor.piercing = projectile.factor.piercing - 1
-							
-							
-						}
+						score += Math.round(100 * ( (distPoint - enemy.radius) / 100) ) 
 						
-					}, 0)
-				} else {
-					if (timer > 500) {timer -=10}
-					
-					score += Math.round(250 * ( (distPoint - enemy.radius) / 100 ) )
-					
-					ScoreEL.innerText = score
-					setTimeout(() => {
-						enemies.splice(enemyIndex, 1)
-						projectiles.splice(projectileIndex, 1) 
-					}, 0)
+						ScoreEL.innerText = score
+						gsap.to(enemy, {radius: enemy.radius - 15})
+						setTimeout(() => {
+							
+							if ( projectile.factor.piercing < 1)
+							{
+								projectiles.splice(projectileIndex, 1)
+							}
+							else
+							{ 
+								projectile.factor.piercing = projectile.factor.piercing - 1	
+							}
+							
+						}, 0)
+					} else {
+						if (timer > 500) {timer -=10}
+						
+						score += Math.round(250 * ( (distPoint - enemy.radius) / 100 ) )
+						
+						ScoreEL.innerText = score
+						setTimeout(() => {
+							enemies.splice(enemyIndex, 1)
+							projectiles.splice(projectileIndex, 1) 
+						}, 0)
+					}
 				}
 			}
 		})
-		//-------------------------------------------------------------------------------
 	})
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -344,7 +370,15 @@ addEventListener('click', () => {
 		velocity = { x: Math.cos(angle) * 9 , y: Math.sin(angle) * 9 }
 		
 		projectiles.push(new Projectile( player.x , player.y , 3 , player.color , velocity ) ) }
-	console.log( projectiles )
+	
+	else if ( player.color == 'blue' ) {
+		angle = Math.atan2( clickRegion(event.clientY, clickDist/10 ) - player.y ,  clickRegion(event.clientX, clickDist/10 ) - player.x )
+		velocity = { x: Math.cos(angle) * 9 , y: Math.sin(angle) * 9 }
+		
+		projectiles.push(new Projectile( player.x , player.y , 3 , player.color , velocity ) ) }
+	
+	
+	//console.log( projectiles )
 	
 })
 
@@ -374,10 +408,17 @@ addEventListener('keydown', ({keyCode}) => {
 		case 81: //color1 q
 			keys.color1.pressed = true
 			keys.color2.pressed = false
+			keys.color3.pressed = false
 			break
 		case 69: //color2 e
 			keys.color2.pressed = true
 			keys.color1.pressed = false
+			keys.color3.pressed = false
+			break
+		case 82: //color3 r
+			keys.color2.pressed = false
+			keys.color1.pressed = false
+			keys.color3.pressed = true
 			break
 	} } )
 
